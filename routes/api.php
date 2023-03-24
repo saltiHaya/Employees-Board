@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +16,22 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+// Public routes
+Route::controller(AuthController::class)->group(function(){
+    Route::post('auth/login', 'login');
+});
+
+// Private routes for HRManager
+Route::group(['middleware' => ['auth:sanctum', 'CheckRole']], function () {
+    Route::post('auth/register', [AuthController::class, 'register']);
+    Route::get('users', [UserController::class, 'index']);
+    Route::get('users/role/{role}', [UserController::class, 'indexByRole']);
+    Route::post('users/deactivate/{id}', [UserController::class, 'deactivate']);
+});
+
+// Private routes
+Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::post('auth/logout', [AuthController::class, 'logout']);
+    Route::get('users/{id}', [UserController::class, 'show']); 
+    Route::put('users/{id}', [UserController::class, 'updateEmployeeContactInfo']);
 });
